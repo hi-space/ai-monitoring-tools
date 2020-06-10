@@ -8,6 +8,9 @@ import os
 import unet as un
 from utils import *
 
+
+inference_path="/home/ubuntu/data"
+
 on_gpu = True
 
 def inference(model_folder, inference_foler, depth=False):
@@ -58,7 +61,6 @@ def inference(model_folder, inference_foler, depth=False):
     
         np.save(output_folder + '/' + img_id, new_pred)
 
-inference_path = "beam_data"
 inference('models/nyu_rgb_no_pretrain', inference_path, depth=False)
 inference('models/nyu_rgb_imagenet_pretrain', inference_path,depth=False)
 inference('models/nyu_rgb_scenenet_pretrain', inference_path, depth=False)
