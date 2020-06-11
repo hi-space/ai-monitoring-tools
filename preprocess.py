@@ -23,6 +23,8 @@ def reshape_infer_depth(n):
     reshaped = resized.reshape(1, 240, 320) / 10000.0
     return reshaped
 
+os.makedirs(output_path, exist_ok=True)
+
 for filename in os.listdir(source_path):
     if filename.endswith('RGB.npy'):
         # np
@@ -32,7 +34,7 @@ for filename in os.listdir(source_path):
 
         # img
         np_img = reshape_img_rgb(n)
-        save_np_to_image(output_path + "/" + filename + ".jpg", np_img)
+        save_np_to_image(output_path + "/" + filename.split('.')[0] + ".jpg", np_img)
     elif filename.endswith('DEPTH.npy'):
         # np
         img = reshape_infer_depth(np.load(source_path + "/" + filename))
@@ -41,6 +43,6 @@ for filename in os.listdir(source_path):
 
         # img
         np_img = reshape_img_depth(n)
-        save_np_to_image(output_path + "/" + filename + ".jpg", np_img)
+        save_np_to_image(output_path + "/" + filename.split('.')[0] + ".jpg", np_img)
 
 

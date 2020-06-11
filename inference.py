@@ -10,7 +10,7 @@ from utils import *
 
 
 inference_path = "/home/ubuntu/data2"
-output_path = "/home/ubuntu/result"
+output_path = "result"
 
 on_gpu = True
 
@@ -61,6 +61,8 @@ def inference(model_folder, inference_folder, depth=False):
         new_pred = np.argmax(pred_numpy[0],axis=0)
 
         np.save(output_path + "/" + img_id + "_" + model_name, new_pred)
+
+os.makedirs(output_path, exist_ok=True)
 
 inference('models/nyu_rgb_no_pretrain', inference_path, depth=False)
 inference('models/nyu_rgb_imagenet_pretrain', inference_path,depth=False)

@@ -15,3 +15,4 @@ def reshape_img_depth(n):
 
 def save_np_to_image(path, n):
     mpimg.imsave(path, n)
+
