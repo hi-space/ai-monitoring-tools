@@ -62,16 +62,18 @@ def inference(model_folder, inference_folder, depth=False):
 
         np.save(output_path + "/" + img_id + "_" + model_name, new_pred)
 
-os.makedirs(output_path, exist_ok=True)
 
-inference('models/nyu_rgb_no_pretrain', inference_path, depth=False)
-inference('models/nyu_rgb_imagenet_pretrain', inference_path,depth=False)
-inference('models/nyu_rgb_scenenet_pretrain', inference_path, depth=False)
-inference('models/nyu_rgbd_no_pretrain', inference_path,depth=True)
-inference('models/nyu_rgbd_scenenet_pretrain', inference_path,depth=True)
+if __name__ == "__main__":
+    os.makedirs(output_path, exist_ok=True)
 
-inference('models/sun_rgb_no_pretrain',inference_path, depth=False)
-inference('models/sun_rgb_imagenet_pretrain', inference_path, depth=False)
-inference('models/sun_rgb_scenenet_pretrain', inference_path, depth=False)
-inference('models/sun_rgbd_no_pretrain', inference_path, depth=True)
-inference('models/sun_rgbd_scenenet_pretrain', inference_path, depth=True)
+    #inference('models/nyu_rgb_no_pretrain', inference_path, depth=False)
+    #inference('models/nyu_rgb_imagenet_pretrain', inference_path,depth=False)
+    inference('models/nyu_rgb_scenenet_pretrain', inference_path, depth=False)
+    #inference('models/nyu_rgbd_no_pretrain', inference_path,depth=True)
+    inference('models/nyu_rgbd_scenenet_pretrain', inference_path,depth=True)
+
+    #inference('models/sun_rgb_no_pretrain',inference_path, depth=False)
+    #inference('models/sun_rgb_imagenet_pretrain', inference_path, depth=False)
+    inference('models/sun_rgb_scenenet_pretrain', inference_path, depth=False)
+    #inference('models/sun_rgbd_no_pretrain', inference_path, depth=True)
+    inference('models/sun_rgbd_scenenet_pretrain', inference_path, depth=True)

@@ -49,3 +49,9 @@ def infer_npy_to_image(alpha=0.8):
             np_rgb = cv2.imread(source_path + filename.split('_')[0] + "_RGB.jpg")
             merge = cv2.addWeighted(np_rgb, alpha, np_seg, 1 - alpha, 0)
             mpimg.imsave(output_path + filename + ".jpg", merge)
+
+
+
+if __name__ == "__main__":
+    #infer_npy_to_image(0.5)
+    rgbd_npy_to_image(0.5)

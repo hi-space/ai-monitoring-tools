@@ -1,6 +1,7 @@
 import numpy as np
 
 
+# nyu class 13
 color_code = np.array([[0, 0, 0], #UNKNOWN
                        [0, 0, 1], #BED
                        [0.9137,0.3490,0.1882], #BOOKS
