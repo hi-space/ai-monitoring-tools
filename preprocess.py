@@ -5,8 +5,8 @@ import matplotlib.image as mpimg
 from PIL import Image
 from utils import *
 
-source_path = "/home/ubuntu/data/20200610"
-output_path = "/home/ubuntu/data2"
+source_path = "data"
+output_path = "data2"
 
 
 def reshape_infer_rgb(n):
@@ -33,8 +33,8 @@ for filename in os.listdir(source_path):
         np.save(output_path + "/" + filename, n)
 
         # img
-        np_img = reshape_img_rgb(n)
-        save_np_to_image(output_path + "/" + filename.split('.')[0] + ".jpg", np_img)
+        #np_img = reshape_img_rgb(n)
+        #save_np_to_image(output_path + "/" + filename.split('.')[0] + ".jpg", np_img)
     elif filename.endswith('DEPTH.npy'):
         # np
         img = reshape_infer_depth(np.load(source_path + "/" + filename))
@@ -42,7 +42,7 @@ for filename in os.listdir(source_path):
         np.save(output_path + "/" + filename, n)
 
         # img
-        np_img = reshape_img_depth(n)
-        save_np_to_image(output_path + "/" + filename.split('.')[0] + ".jpg", np_img)
+        #np_img = reshape_img_depth(n)
+        #save_np_to_image(output_path + "/" + filename.split('.')[0] + ".jpg", np_img)
 
 

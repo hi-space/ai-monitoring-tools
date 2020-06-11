@@ -9,7 +9,7 @@ import unet as un
 from utils import *
 
 
-inference_path = "/home/ubuntu/data2"
+inference_path = "data2"
 output_path = "result"
 
 on_gpu = True
