@@ -10,7 +10,7 @@ def reshape_img_rgb(n):
     return cv2_bgr
 
 def reshape_img_depth(n):
-    np_depth = np.uint16(n[0] * 1000)
+    np_depth = np.uint16(n[0] * 10000)
     return np_depth
 
 def save_np_to_image(path, n):
