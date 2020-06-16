@@ -1,15 +1,16 @@
+import cv2
 import torch
 import torch.nn as nn
 from torch.utils.serialization import load_lua
-from PIL import Image
 import numpy as np
-import cv2
 import os
 import unet as un
 from utils import *
+from config import *
 from convert_my_data import reshape_nyu_rgb, reshape_sun_depth
 
-inference_path = "data2"
+
+data_path = "data2"
 output_path = "result"
 
 on_gpu = True
@@ -61,17 +62,15 @@ def inference_rgb(model, rgb_data):
     return new_pred
 
 
-def inference_batch(model_path, data_path, depth=False):
+def inference_batch(model_path, data_path=data_path, output_path=output_path, depth=False):
     print('Model folder:{}'.format(model_path))
     print('Data folder:{}'.format(data_path))
 
     unet = get_network(model_path, depth)
-    unet.eval()
-    
+        
     if not os.path.exists(output_path):
         os.makedirs(output_path)
-    model_name = model_path.split('/')[1]
-    
+        
     img_ids = list()
     for i in os.listdir(data_path):
         if i.endswith('.npy'):
@@ -104,20 +103,21 @@ def inference_batch(model_path, data_path, depth=False):
 
         new_pred = np.argmax(pred_numpy[0],axis=0)
 
+        model_name = model_path.split('/')[1]
         np.save(output_path + "/" + img_id + "_" + model_name, new_pred)
 
 
 if __name__ == "__main__":
     os.makedirs(output_path, exist_ok=True)
 
-    #inference_batch('models/nyu_rgb_no_pretrain', inference_path, depth=False)
-    #inference_batch('models/nyu_rgb_imagenet_pretrain', inference_path,depth=False)
-    inference_batch('models/nyu_rgb_scenenet_pretrain', inference_path, depth=False)
-    #inference_batch('models/nyu_rgbd_no_pretrain', inference_path,depth=True)
-    inference_batch('models/nyu_rgbd_scenenet_pretrain', inference_path,depth=True)
+    #inference_batch(NYU_RGB_NO_PRETRAIN, data_path, depth=False)
+    #inference_batch(NYU_RGB_IMAGENET_PRETRAIN, data_path,depth=False)
+    inference_batch(NYU_RGB_SCENENET_PRETRAIN, data_path, depth=False)
+    #inference_batch(NYU_RGBD_NO_PRETRAIN, data_path,depth=True)
+    inference_batch(NYU_RGBD_SCENENET_PRETRAIN, data_path,depth=True)
 
-    #inference_batch('models/sun_rgb_no_pretrain',inference_path, depth=False)
-    #inference_batch('models/sun_rgb_imagenet_pretrain', inference_path, depth=False)
-    inference_batch('models/sun_rgb_scenenet_pretrain', inference_path, depth=False)
-    #inference_batch('models/sun_rgbd_no_pretrain', inference_path, depth=True)
-    inference_batch('models/sun_rgbd_scenenet_pretrain', inference_path, depth=True)
+    #inference_batch(SUN_RGB_NO_PRETRAIN,data_path, depth=False)
+    #inference_batch(SUN_RGB_IMAGENET_PRETRAIN, data_path, depth=False)
+    inference_batch(SUN_RGB_SCENENET_PRETRAIN, data_path, depth=False)
+    #inference_batch(SUN_RGBD_NO_PRETRAIN, data_path, depth=True)
+    inference_batch(SUN_RGBD_SCENENET_PRETRAIN, data_path, depth=True)
