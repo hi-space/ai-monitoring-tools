@@ -1,3 +1,4 @@
+import argparse
 from PIL import Image
 import numpy as np
 import cv2
@@ -32,14 +33,12 @@ def rgbd_npy_to_image(rgbd_path, alpha=0.7):
        mpimg.imsave(rgbd_path + filename + "_DEPTH.jpg", np_depth)
 
        # rgb + depth
-       alpha = 0.7
        merge = cv2.addWeighted(np_rgb, alpha, np_depth, 1 - alpha, 0)
        mpimg.imsave(rgbd_path + filename + "_SUM.jpg", merge)
 
 
 # segmentation class
 def segmentation_color_mapping(rgbd_path, segmentation_path, alpha=0.8):
-    alpha = 0.8
     for filename in os.listdir(segmentation_path):
         if filename.endswith('.npy'):
             n = np.load(segmentation_path + filename)
@@ -52,5 +51,15 @@ def segmentation_color_mapping(rgbd_path, segmentation_path, alpha=0.8):
 
 
 if __name__ == "__main__":
-    #segmentation_color_mapping(rgbd_path, segmentation_path, 0.5)
-    rgbd_npy_to_image(rgbd_path, 0.5)
+    parser = argparse.ArgumentParser(description="save rgbd image & segmentation color mapping")
+
+    parser.add_argument('--rgbd_path', help='rgbd np folder path', default=rgbd_path)
+    parser.add_argument('--seg_path', help='segmentation np folder path', default='')
+    parser.add_argument('--rgbd_alpha', help='rgb + depth image weight (0~1)', default=0.7)
+    parser.add_argument('--seg_alpha', help='rgb + segmentation image weight (0~1)', default=0.8)
+    args = parser.parse_args()
+
+    rgbd_npy_to_image(args.rgbd_path, args.rgbd_alpha)
+    if not args.seg_path:    
+        segmentation_color_mapping(args.rgbd_path, args.segmentation_path, args.seg_alpha)
+    
