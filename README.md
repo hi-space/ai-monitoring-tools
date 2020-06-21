@@ -18,3 +18,5 @@ open3d
 ## Class
 
 NYU 13 class
+
+![class](./docs/segmentation_class.png)
