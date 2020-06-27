@@ -13,63 +13,24 @@ from convert_my_data import reshape_nyu_rgb, reshape_sun_depth
 data_path = "data2"
 output_path = "result"
 
-on_gpu = True
-
 
 def get_network(model_path, depth=False):
     unet = un.UNetRGBD(14) if depth else un.UNet(14)
-    unet.load_state_dict(torch.load(model_path + '.pth'))
-    if on_gpu:
+    unet.load_state_dict(torch.load(model_path + '.pth', map_location='cpu'))
+    if on_gpu: 
         unet.cuda()
+    if not depth:
+        unet.eval()
     return unet
-
-
-def inference_rgbd(model, rgb_data, depth_data):
-    scaled_rgb = reshape_nyu_rgb(rgb_data)
-    scaled_depth = reshape_sun_depth(depth_data)
-    
-    scaled_rgb = np.expand_dims(scaled_rgb,0)
-    scaled_depth = np.expand_dims(scaled_depth,0)
-    torch_rgb = torch.tensor(scaled_rgb,dtype=torch.float32)
-    torch_depth = torch.tensor(scaled_depth,dtype=torch.float32)
-
-    if on_gpu:
-        pred = model.forward((torch_rgb.cuda(),torch_depth.cuda()))
-        pred_numpy = pred.cpu().detach().numpy()
-    else:
-        pred = model.forward((torch_rgb,torch_depth))
-        pred_numpy = pred.detach().numpy()
-
-    new_pred = np.argmax(pred_numpy[0],axis=0)
-
-    return new_pred
-
-
-def inference_rgb(model, rgb_data):   
-    scaled_rgb = reshape_nyu_rgb(rgb_data)
-    scaled_rgb = np.expand_dims(scaled_rgb,0)
-    torch_rgb = torch.tensor(scaled_rgb,dtype=torch.float32)
-    
-    if on_gpu:
-        pred = model.forward(torch_rgb.cuda())
-        pred_numpy = pred.cpu().detach().numpy()
-    else:
-        pred = model.forward(torch_rgb)
-        pred_numpy = pred.detach().numpy()
-
-    new_pred = np.argmax(pred_numpy[0],axis=0)
-
-    return new_pred
 
 
 def inference_batch(model_path, data_path=data_path, output_path=output_path, depth=False):
     print('Model folder:{}'.format(model_path))
     print('Data folder:{}'.format(data_path))
 
+    os.makedirs(output_path, exist_ok=True)
+
     unet = get_network(model_path, depth)
-        
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
         
     img_ids = list()
     for i in os.listdir(data_path):
@@ -79,6 +40,7 @@ def inference_batch(model_path, data_path=data_path, output_path=output_path, de
 
     for img_id in img_ids:
         try:
+            #scaled_rgb = cv2.imread(data_path + '/{}_RGB.jpg'.format(img_id))
             scaled_rgb = np.load(data_path + '/{}_RGB.npy'.format(img_id))
             scaled_depth = np.load(data_path + '/{}_DEPTH.npy'.format(img_id))
         except Exception as e:
