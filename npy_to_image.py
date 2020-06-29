@@ -44,10 +44,21 @@ def segmentation_color_mapping(rgbd_path, segmentation_path, alpha=0.8):
             n = np.load(segmentation_path + filename)
             np_seg = class_from_instance(n)
             np_seg = cv2.resize(np_seg, dsize=(640, 480), interpolation=cv2.INTER_CUBIC)
-            np_rgb = cv2.imread(rgbd_path + filename.split('_')[0] + "_RGB.jpg")
-            merge = cv2.addWeighted(np_rgb, alpha, np_seg, 1 - alpha, 0)
-            mpimg.imsave(segmentation_path + filename + ".jpg", merge)
+            
+            if alpha==0:
+                mpimg.imsave(sagmentation_path + filename + ".jpg", np_seg)
+        
+            else:
+                np_rgb = cv2.imread(rgbd_path + filename.split('_')[0] + "_RGB.jpg")
+                merge = cv2.addWeighted(np_rgb, alpha, np_seg, 1 - alpha, 0)
+                mpimg.imsave(segmentation_path + filename + ".jpg", merge)
 
+
+def segmentation_overlay(np_rgb, np_seg, alpha=0.8):
+    np_seg = class_from_instance(np_seg)
+    np_seg = cv2.resize(np_seg, dsize=(640, 480), interpolation=cv2.INTER_CUBIC)
+    merge = cv2.addWeighted(np_rgb, alpha, np_seg, 1 - alpha, 0)
+    return merge
 
 
 if __name__ == "__main__":
@@ -62,4 +73,5 @@ if __name__ == "__main__":
     rgbd_npy_to_image(args.rgbd_path, args.rgbd_alpha)
     if not args.seg_path:    
         segmentation_color_mapping(args.rgbd_path, args.segmentation_path, args.seg_alpha)
+    
     

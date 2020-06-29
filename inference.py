@@ -13,6 +13,22 @@ from convert_my_data import reshape_nyu_rgb, reshape_sun_depth
 data_path = "data2"
 output_path = "result"
 
+<<<<<<< HEAD
+
+
+def get_network(model_path):
+    if model_path == (SUN_RGB_SCENENET_PRETRAIN or NYU_RGB_SCENENET_PRETRAIN):
+        unet = un.UNet(14)
+
+    if model_path == (SUN_RGBD_SCENENET_PRETRAIN or NYU_RGBD_SCENENET_PRETRAIN):
+        unet = un.UNetRGBD(14)
+
+    unet.load_state_dict(torch.load(model_path + '.pth'))
+
+    if on_gpu:
+        unet.cuda()
+
+=======
 
 def get_network(model_path, depth=False):
     unet = un.UNetRGBD(14) if depth else un.UNet(14)
@@ -21,6 +37,7 @@ def get_network(model_path, depth=False):
         unet.cuda()
     if not depth:
         unet.eval()
+>>>>>>> 4a4b2797e227cb14e0fd138d3de260cf0c4ec43e
     return unet
 
 
