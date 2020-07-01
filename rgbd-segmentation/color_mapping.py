@@ -30,7 +30,7 @@ def class_from_instance(n):
     g = class_img_rgb[:,:,1]
     b = class_img_rgb[:,:,2]
 
-    for instance_id in range(13):
+    for instance_id in range(len(color_code)):
         r[n==instance_id] = np.uint8(color_code[instance_id][0]*255)
         g[n==instance_id] = np.uint8(color_code[instance_id][1]*255)
         b[n==instance_id] = np.uint8(color_code[instance_id][2]*255)
