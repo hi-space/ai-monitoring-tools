@@ -32,9 +32,9 @@ class SegmentationService(QtCore.QObject):
             seg_overlay = cv2.cvtColor(seg_overlay, cv2.COLOR_BGR2RGB)
 
             qt_seg_image = QtGui.QImage(seg_overlay.data, 640, 480, seg_overlay.strides[0], QtGui.QImage.Format_RGB888)
-            
+                        
             self.seg_signal.emit(qt_seg_image)
 
-            loop = QtCore.QEventLoop()
-            QtCore.QTimer.singleShot(1, loop.quit)
-            loop.exec_()
+            # loop = QtCore.QEventLoop()
+            # QtCore.QTimer.singleShot(1, loop.quit)
+            # loop.exec_()

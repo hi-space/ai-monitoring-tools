@@ -3,13 +3,14 @@ import subprocess
 import os
 
 
-class CameraMode(enum.Enum):
-    WEBCAM = 0
-    REALSENSE = 1
-    KVS = 2
-    ZMQ = 3
+class CameraConfig:
+    class CameraMode(enum.Enum):
+        WEBCAM = 0
+        REALSENSE = 1
+        RGBTOF = 2
+        
+    camera_mode = CameraMode.REALSENSE
 
-camera_mode = CameraMode.REALSENSE
 
 class SegConfig:
     # segmentation

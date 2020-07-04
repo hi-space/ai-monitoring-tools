@@ -4,12 +4,12 @@ from PyQt5 import QtCore
 from PyQt5 import QtGui
 
 
-class Video(QtCore.QObject):
+class VideoService(QtCore.QObject):
     rgb_signal = QtCore.pyqtSignal(QtGui.QImage)
     depth_signal = QtCore.pyqtSignal(QtGui.QImage)
     
     def __init__(self, camera, parent=None):
-        super(Video, self).__init__(parent)
+        super(VideoService, self).__init__(parent)
         self.camera = camera
 
     @QtCore.pyqtSlot()
@@ -20,8 +20,8 @@ class Video(QtCore.QObject):
                 
                 # display rgb image
                 color_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB)
+                color_image = cv2.resize(color_image, dsize=(320, 240), interpolation=cv2.INTER_LINEAR)
                 height, width, channel = color_image.shape
-
                 qt_rgb_image = QtGui.QImage(color_image.data,
                                         width,
                                         height,
@@ -32,11 +32,12 @@ class Video(QtCore.QObject):
 
                 # display depth image
                 depth_image = cv2.cvtColor(depth_colormap, cv2.COLOR_BGR2RGB)
-                height, width, channel = depth_colormap.shape
-                qt_depth_image = QtGui.QImage(depth_colormap.data,
+                depth_image = cv2.resize(depth_image, dsize=(320, 240), interpolation=cv2.INTER_LINEAR)
+                height, width, channel = depth_image.shape
+                qt_depth_image = QtGui.QImage(depth_image.data,
                                         width,
                                         height,
-                                        depth_colormap.strides[0],
+                                        depth_image.strides[0],
                                         QtGui.QImage.Format_RGB888)
 
 

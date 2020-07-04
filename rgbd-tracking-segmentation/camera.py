@@ -1,9 +1,7 @@
 import cv2
 import pyrealsense2 as rs
 import numpy as np
-import boto3
-import imagezmq
-from pcd_app import PointCloudApp
+from pointcloud import PointCloud
 
 
 class ICamera():
@@ -18,37 +16,6 @@ class ICamera():
 
     def stop(self):
         pass
-
-
-class Camera(ICamera):
-    def __init__(self, stream_name=None, video_index=0):
-        self.camera = None
-        self.frame = None
-        
-        if stream_name is None:
-            self.camera = cv2.VideoCapture(video_index)
-        else:
-            kvs = boto3.client("kinesisvideo")
-            endpoint = kvs.get_data_endpoint(
-                APIName="GET_HLS_STREAMING_SESSION_URL",
-                StreamName=stream_name
-            )['DataEndpoint']
-
-            print(endpoint)
-
-            kvam = boto3.client("kinesis-video-archived-media", endpoint_url=endpoint)
-            url = kvam.get_hls_streaming_session_url(
-                StreamName=stream_name,
-                PlaybackMode="LIVE"
-            )['HLSStreamingSessionURL']
-
-            self.camera = cv2.VideoCapture(url)
-    
-    def get_frames(self):
-        try:
-            _, self.frame = self.camera.read()
-        finally:
-            return self.frame, self.frame
 
 
 class RealSense(ICamera):
@@ -67,7 +34,7 @@ class RealSense(ICamera):
         depth_sensor = self.profile.get_device().first_depth_sensor()
         depth_scale = depth_sensor.get_depth_scale()
 
-        self.pcd = PointCloudApp(self.profile)
+        self.pcd = PointCloud(self.profile)
 
     def stop(self):
         self.pipeline.stop()
@@ -89,19 +56,3 @@ class RealSense(ICamera):
         out = self.pcd.update(self.color_frame, self.depth_frame, self.color_image, self.depth_colormap)
         return out
 
-
-class RGBDCamera(ICamera):
-    def __init__(self, ip='localhost', port=5555):
-        self.image_hub = imagezmq.ImageHub(open_port='tcp://' + ip + ':' + str(port), REQ_REP=False)
-        self.color_image = self.depth_image = None
-
-    def get_frames(self):
-        name, jpg_buffer = self.image_hub.recv_jpg()
-        image = cv2.imdecode(np.frombuffer(jpg_buffer, dtype='uint8'), -1)
-
-        if name =='rgb':
-            self.color_image = image
-        elif name == 'depth':
-            self.depth_image = image
-
-        return self.color_image, self.depth_image

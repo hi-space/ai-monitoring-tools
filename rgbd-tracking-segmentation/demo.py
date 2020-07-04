@@ -1,40 +1,38 @@
 import cv2
 import sys
-import time
-import datetime
-import zmq
 import numpy as np
+import qtmodern.styles
+import qtmodern.windows
 
-from camera import Camera, RealSense, RGBDCamera
-from config import *
-from utils import *
-from qt_widget import *
-
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import *
-from PyQt5 import QtGui
-
+from camera import RealSense
+from config import CameraConfig
+from pointcloud_service import PointCloudService
 from segmentation_service import SegmentationService
 from tracking_service import TrackingService
-from pcd_service import PointCloudService
+from ui.image_viewer import ImageViewer
+from utils import *
+from video_service import VideoService
 
-from video import Video
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    qtmodern.styles.dark(app)
 
-    if camera_mode == CameraMode.REALSENSE:
-        camera = RealSense()
-        camera.start()  
-    elif camera_mode == CameraMode.WEBCAM:
-        camera = Camera(video_index=0)
-    elif camera_mode == CameraMode.KVS:
-        camera = Camera(stream_name="beam-test-1")
-    elif camera_mode == CameraMode.ZMQ:
-        camera = RGBDCamera(ip="192.168.0.110")
-    else:
-        print("Camera Mode is not set")
+    main_window = QMainWindow()
+    
+    # Camera
+    try:
+        if CameraConfig.camera_mode == CameraConfig.CameraMode.REALSENSE:
+            camera = RealSense()
+            camera.start()
+        elif CameraConfig.camera_mode == CameraConfig.CameraMode.RGBTOF:
+            pass
+    except Exception as e:
+        print(e)
         sys.exit(app.exec_())
     
     # Video thread
@@ -54,7 +52,7 @@ if __name__ == '__main__':
     segmentation_thread.start()
     segmentation = SegmentationService(camera)
     segmentation.moveToThread(segmentation_thread)
-    
+
     # Tracking service thread
     tracking_thread = QtCore.QThread()
     tracking_thread.start()
@@ -67,33 +65,86 @@ if __name__ == '__main__':
     pcd_viewer = ImageViewer()
     seg_viewer = ImageViewer()
     tracking_viewer = ImageViewer()
-    table_viewer = TableViewer()
+
+    seg_button = QPushButton('Segmentation')
+    tracking_button = QPushButton('Tracking')
+    pcd_button = QPushButton('PointCloud')
 
     pcd_viewer.mouseMoveEvent = pcd.camera.pcd.qt_mouse_event
 
-    grid_layout = QGridLayout()
-    grid_layout.addWidget(rgb_viewer, 0, 0)
-    grid_layout.addWidget(depth_viewer, 0, 1)
-    grid_layout.addWidget(seg_viewer, 1, 0)
-    grid_layout.addWidget(tracking_viewer, 1, 1)
-    grid_layout.addWidget(pcd_viewer, 0, 2)
+    # RGBD Dock Widget
+    rgbd_layout = QHBoxLayout()
+    rgbd_layout.addWidget(rgb_viewer)
+    rgbd_layout.addWidget(depth_viewer)
 
-    start_button = QPushButton('Start')
-    pcd_button = QPushButton('PointCloud')
-    seg_button = QPushButton('Segmentation')
-    tracking_button = QPushButton('Tracking')
-    clear_button = QPushButton('Clear')
+    rgbd_widget = QWidget()
+    rgbd_widget.setLayout(rgbd_layout)
 
-    vertical_layout = QVBoxLayout()
-    vertical_layout.addLayout(grid_layout)
-    vertical_layout.addWidget(table_viewer.table)
-    vertical_layout.addWidget(start_button)
-    vertical_layout.addWidget(pcd_button)
-    vertical_layout.addWidget(seg_button)
-    vertical_layout.addWidget(tracking_button)
+    dw_rgbd_viewer = QDockWidget()
+    dw_rgbd_viewer.setWindowTitle('RGBD')
+    dw_rgbd_viewer.setWidget(rgbd_widget)
+
+    main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dw_rgbd_viewer)
+
+
+    # Segmentation Dock Widget
+    seg_layout = QVBoxLayout()
+    seg_layout.addWidget(seg_viewer)
+    seg_layout.addWidget(seg_button)
     
-    layout_widget = QWidget()
-    layout_widget.setLayout(vertical_layout)
+    seg_widget = QWidget()
+    seg_widget.setLayout(seg_layout)
+
+    dw_seg_viewer = QDockWidget()
+    dw_seg_viewer.setWindowTitle('Segmentation')
+    dw_seg_viewer.setWidget(seg_widget)
+    
+    main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dw_seg_viewer)
+
+
+    # Tracking Dock Widget
+    status_bar = QStatusBar()
+    
+    status_label = QLabel("cat is on the table")
+    status_label.setFixedSize(640, 100)
+    status_label.setStyleSheet("color: white;")
+    status_label.setFont(QtGui.QFont('Arial', 15))
+    status_label.setAlignment(Qt.AlignCenter)
+
+    status_bar.addWidget(status_label)
+    
+    tracking_layout = QVBoxLayout()
+    tracking_layout.addWidget(tracking_viewer)
+    tracking_layout.addWidget(status_bar)
+    tracking_layout.addWidget(tracking_button)
+    
+
+    tracking_widget = QWidget()
+    tracking_widget.setLayout(tracking_layout)
+
+    dw_tracking_viewer = QDockWidget()
+    dw_tracking_viewer.setWindowTitle('Tracking')
+    dw_tracking_viewer.setWidget(tracking_widget)
+    
+    main_window.setCentralWidget(dw_tracking_viewer)
+
+
+    # PointCloud Dock Widget
+    pcd_layout = QVBoxLayout()
+    pcd_layout.addWidget(pcd_viewer)
+    pcd_layout.addWidget(pcd_button)
+
+    pcd_widget = QWidget()
+    pcd_widget.setLayout(pcd_layout)
+
+    dw_pcd_viewer = QDockWidget()
+    dw_pcd_viewer.setWindowTitle('PointCloud')
+    dw_pcd_viewer.setWidget(pcd_widget)
+
+    main_window.addDockWidget(QtCore.Qt.RightDockWidgetArea, dw_pcd_viewer)
+    
+    # main_window.tabifyDockWidget(dw_rgb_viewer, dw_depth_viewer)
+
 
     # Button Event
     pcd_button.clicked.connect(pcd.start)
@@ -106,12 +157,14 @@ if __name__ == '__main__':
     pcd.pcd_signal.connect(pcd_viewer.setImage)
     segmentation.seg_signal.connect(seg_viewer.setImage)
     tracking.tracking_signal.connect(tracking_viewer.setImage)
-
-    main_window = QMainWindow()
-    main_window.setCentralWidget(layout_widget)
+    
+    # main window theme
+    main_window = qtmodern.windows.ModernWindow(main_window)
     main_window.show()
 
     video.start()
-    pcd.start()
-    
+    # pcd.start()
+    # segmentation.start()
+    # tracking.start()
+
     sys.exit(app.exec_())

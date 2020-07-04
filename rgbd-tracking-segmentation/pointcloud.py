@@ -4,7 +4,7 @@ import math
 import pyrealsense2 as rs
 
 
-class PointCloudAppState:
+class PointCloudState:
     def __init__(self, *args, **kwargs):
         self.WIN_NAME = 'PointCloud'
         self.pitch, self.yaw = math.radians(-10), math.radians(-15)
@@ -32,13 +32,13 @@ class PointCloudAppState:
         return self.translation + np.array((0, 0, self.distance), dtype=np.float32)
 
 
-class PointCloudApp:
+class PointCloud:
     def __init__(self, profile):
         depth_profile = rs.video_stream_profile(profile.get_stream(rs.stream.depth))
         self.depth_intrinsics = depth_profile.get_intrinsics()
         self.w, self.h = self.depth_intrinsics.width, self.depth_intrinsics.height
 
-        self.state = PointCloudAppState()
+        self.state = PointCloudState()
         self.out = np.empty((self.h, self.w, 3), dtype=np.uint8)
 
         self.pc = rs.pointcloud()
