@@ -36,27 +36,36 @@ if __name__ == '__main__':
         sys.exit(app.exec_())
     
     # Video thread
+    video = VideoService(camera)
+    video.rgb_signal.connect(rgb_viewer.setImage)
+    video.depth_signal.connect(depth_viewer.setImage)
+
     video_thread = QtCore.QThread()
     video_thread.start()
-    video = Video(camera)
     video.moveToThread(video_thread)
 
     # PCD Thread
+    pcd = PointCloudService(camera)
+    pcd.pcd_signal.connect(pcd_viewer.setImage)
+
     pcd_thread = QtCore.QThread()
     pcd_thread.start()
-    pcd = PointCloudService(camera)
     pcd.moveToThread(pcd_thread)
     
     # Segmentation service thread
+    segmentation = SegmentationService(camera)
+    segmentation.seg_signal.connect(seg_viewer.setImage)
+
     segmentation_thread = QtCore.QThread()
     segmentation_thread.start()
-    segmentation = SegmentationService(camera)
     segmentation.moveToThread(segmentation_thread)
 
     # Tracking service thread
+    tracking = TrackingService(camera)
+    tracking.tracking_signal.connect(tracking_viewer.setImage)
+
     tracking_thread = QtCore.QThread()
     tracking_thread.start()
-    tracking = TrackingService(camera)
     tracking.moveToThread(tracking_thread)
 
     # Qt View
@@ -151,12 +160,6 @@ if __name__ == '__main__':
     seg_button.clicked.connect(segmentation.start)
     tracking_button.clicked.connect(tracking.start)
 
-    # Qt Event
-    video.rgb_signal.connect(rgb_viewer.setImage)
-    video.depth_signal.connect(depth_viewer.setImage)
-    pcd.pcd_signal.connect(pcd_viewer.setImage)
-    segmentation.seg_signal.connect(seg_viewer.setImage)
-    tracking.tracking_signal.connect(tracking_viewer.setImage)
     
     # main window theme
     main_window = qtmodern.windows.ModernWindow(main_window)
