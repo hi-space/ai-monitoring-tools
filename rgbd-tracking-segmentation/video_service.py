@@ -16,38 +16,30 @@ class VideoService(QtCore.QObject):
     def start(self):
         try:
             while True:
-                color_image, depth_image, depth_colormap = self.camera.get_frames()
+                color_image, _, depth_image = self.camera.get_frames()
                 
-                # display rgb image
-                color_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB)
-                color_image = cv2.resize(color_image, dsize=(320, 240), interpolation=cv2.INTER_LINEAR)
-                height, width, channel = color_image.shape
-                qt_rgb_image = QtGui.QImage(color_image.data,
-                                        width,
-                                        height,
-                                        color_image.strides[0],
-                                        QtGui.QImage.Format_RGB888)
+                w, h = 640, 480
 
-                self.rgb_signal.emit(qt_rgb_image)
-
-                # display depth image
-                depth_image = cv2.cvtColor(depth_colormap, cv2.COLOR_BGR2RGB)
-                depth_image = cv2.resize(depth_image, dsize=(320, 240), interpolation=cv2.INTER_LINEAR)
-                height, width, channel = depth_image.shape
-                qt_depth_image = QtGui.QImage(depth_image.data,
-                                        width,
-                                        height,
-                                        depth_image.strides[0],
-                                        QtGui.QImage.Format_RGB888)
-
-
-                self.depth_signal.emit(qt_depth_image)
+                self.updateImage(color_image, self.rgb_signal, w, h)
+                self.updateImage(depth_image, self.depth_signal, w, h)
 
                 loop = QtCore.QEventLoop()
                 QtCore.QTimer.singleShot(1, loop.quit)
                 loop.exec_()
         finally:
             self.camera.stop()
+
+    def updateImage(self, image, signal, w=640, h=480):
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = cv2.resize(image, dsize=(w, h), interpolation=cv2.INTER_LINEAR)
+        height, width, _ = image.shape
+        qt_image = QtGui.QImage(image.data,
+                                width,
+                                height,
+                                image.strides[0],
+                                QtGui.QImage.Format_RGB888)
+
+        signal.emit(qt_image)
 
     @QtCore.pyqtSlot()
     def stop(self):

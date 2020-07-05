@@ -41,68 +41,62 @@ if __name__ == '__main__':
         print(e)
         sys.exit(app.exec_())
     
-    # Qt View
-    rgb_viewer = ImageViewer()
-    depth_viewer = ImageViewer()
-    pcd_viewer = ImageViewer()
-    seg_viewer = ImageViewer()
-    tracking_viewer = ImageViewer()
-
-    # Video thread
-    video = VideoService(camera)
-    video.rgb_signal.connect(rgb_viewer.setImage)
-    video.depth_signal.connect(depth_viewer.setImage)
-
+    # Video thread & service & ui
     video_thread = QtCore.QThread()
     video_thread.start()
+
+    video = VideoService(camera)
+
+    rgbd_widget = RGBDWidget()
+    rgb_siganl, depth_signal = rgbd_widget.getImageSignal()
+
+    video.rgb_signal.connect(rgb_siganl)
+    video.depth_signal.connect(depth_signal)
+
     video.moveToThread(video_thread)
 
-    # PCD Thread
-    pcd = PointCloudService(camera)
-    pcd.pcd_signal.connect(pcd_viewer.setImage)
-
+    # PointCloud thread & service & ui
     pcd_thread = QtCore.QThread()
     pcd_thread.start()
-    pcd.moveToThread(pcd_thread)
-    
-    # Segmentation service thread
-    segmentation = SegmentationService(camera)
-    segmentation.seg_signal.connect(seg_viewer.setImage)
 
+    pcd = PointCloudService(camera)
+    
+    pcd_widget = PointCloudWidget()
+    pcd_widget.setButtonEvent(pcd.start)
+    pcd_widget.setMouseEvent(pcd.camera.pcd.qt_mouse_event)
+    
+    pcd.pcd_signal.connect(pcd_widget.getImageSignal())
+    pcd.moveToThread(pcd_thread)
+
+    # Segmentation thread & service & ui
     segmentation_thread = QtCore.QThread()
     segmentation_thread.start()
+
+    segmentation = SegmentationService(camera)
+    
+    seg_widget = SegmentationWidget()
+    seg_widget.setButtonEvent(segmentation.start)
+
+    segmentation.seg_signal.connect(seg_widget.getImageSignal())
     segmentation.moveToThread(segmentation_thread)
-
-    # Tracking service thread
-    tracking = TrackingService(camera)
-    tracking.tracking_signal.connect(tracking_viewer.setImage)
-
+    
+    # Tracking service thread & service & ui
     tracking_thread = QtCore.QThread()
     tracking_thread.start()
+
+    tracking = TrackingService(camera)
+    
+    tracking_widget = LocalizationWidget()
+    tracking_widget.setButtonEvent(tracking.start)
+
+    tracking.tracking_signal.connect(tracking_widget.getImageSignal())
     tracking.moveToThread(tracking_thread)
 
-    pcd_viewer.mouseMoveEvent = pcd.camera.pcd.qt_mouse_event
-
-    # RGBD Dock Widget
-    dw_rgbd_viewer = RGBDWidget(rgb_viewer, depth_viewer)
-    main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dw_rgbd_viewer)
-
-    # Segmentation Dock Widget
-    dw_seg_viewer = SegmentationWidget(seg_viewer)
-    dw_seg_viewer.setButtonEvent(segmentation.start)
-    main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dw_seg_viewer)
-
-    # Tracaking Dock Widget
-    dw_tracking_viewer = LocalizationWidget(tracking_viewer)
-    dw_tracking_viewer.setButtonEvent(tracking.start)
-    main_window.setCentralWidget(dw_tracking_viewer)
-
-
-    # PointCloud Dock Widget
-    dw_pcd_viewer = PointCloudWidget(pcd_viewer)
-    dw_pcd_viewer.setButtonEvent(pcd.start)
-    main_window.addDockWidget(QtCore.Qt.RightDockWidgetArea, dw_pcd_viewer)
-    
+    # Dock Widgets
+    main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, rgbd_widget)
+    main_window.addDockWidget(QtCore.Qt.RightDockWidgetArea, pcd_widget)   
+    main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, seg_widget)
+    main_window.setCentralWidget(tracking_widget)
     # main_window.tabifyDockWidget(dw_rgb_viewer, dw_depth_viewer)
     
     # main window theme

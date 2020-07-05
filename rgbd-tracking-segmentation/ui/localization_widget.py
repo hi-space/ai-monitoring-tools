@@ -2,18 +2,21 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
+from ui.image_viewer import ImageViewer
+
 
 class LocalizationWidget(QDockWidget):
-    def __init__(self, tracking_viewer, parent=None):
+    def __init__(self, parent=None):
         super(LocalizationWidget, self).__init__(parent)
 
+        self.tracking_viewer = ImageViewer()
         self.tracking_button = QPushButton('Tracking')
 
         status_bar = QStatusBar()
         status_bar.addWidget(self.setStatusLabel("cat is on the table"))
         
         tracking_layout = QVBoxLayout()
-        tracking_layout.addWidget(tracking_viewer)
+        tracking_layout.addWidget(self.tracking_viewer)
         tracking_layout.addWidget(status_bar)
         tracking_layout.addWidget(self.tracking_button)
         
@@ -33,3 +36,6 @@ class LocalizationWidget(QDockWidget):
 
     def setButtonEvent(self, event):
         self.tracking_button.clicked.connect(event)
+
+    def getImageSignal(self):
+        return self.tracking_viewer.setImage
