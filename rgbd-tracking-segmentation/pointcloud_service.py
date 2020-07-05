@@ -27,9 +27,6 @@ class PointCloudService(QtCore.QObject):
                                         QtGui.QImage.Format_RGB888)
 
                 self.pcd_signal.emit(qt_pcd_image)
+        except Exception as e:
+            print(e)
 
-                loop = QtCore.QEventLoop()
-                QtCore.QTimer.singleShot(1, loop.quit)
-                loop.exec_()
-        finally:
-            self.camera.stop()
