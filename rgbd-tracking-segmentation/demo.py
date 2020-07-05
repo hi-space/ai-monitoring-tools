@@ -1,117 +1,115 @@
+#!/usr/bin/env python3
+
 import cv2
 import sys
-import time
-import datetime
-import zmq
 import numpy as np
+import qtmodern.styles
+import qtmodern.windows
 
-from camera import Camera, RealSense, RGBDCamera
-from config import *
-from utils import *
-from qt_widget import *
-
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import *
-from PyQt5 import QtGui
-
+from camera import RealSense
+from config import CameraConfig
+from pointcloud_service import PointCloudService
 from segmentation_service import SegmentationService
 from tracking_service import TrackingService
-from pcd_service import PointCloudService
+from ui.image_viewer import ImageViewer
+from ui.rgbd_widget import RGBDWidget
+from ui.segmentation_widget import SegmentationWidget
+from ui.localization_widget import LocalizationWidget
+from ui.pointcloud_widget import PointCloudWidget
+from utils import *
+from video_service import VideoService
 
-from video import Video
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    qtmodern.styles.dark(app)
 
-    if camera_mode == CameraMode.REALSENSE:
-        camera = RealSense()
-        camera.start()  
-    elif camera_mode == CameraMode.WEBCAM:
-        camera = Camera(video_index=0)
-    elif camera_mode == CameraMode.KVS:
-        camera = Camera(stream_name="beam-test-1")
-    elif camera_mode == CameraMode.ZMQ:
-        camera = RGBDCamera(ip="192.168.0.110")
-    else:
-        print("Camera Mode is not set")
+    main_window = QMainWindow()
+    
+    # Camera
+    try:
+        if CameraConfig.camera_mode == CameraConfig.CameraMode.REALSENSE:
+            camera = RealSense()
+            camera.start()
+        elif CameraConfig.camera_mode == CameraConfig.CameraMode.RGBTOF:
+            pass
+    except Exception as e:
+        print(e)
         sys.exit(app.exec_())
     
-    # Video thread
-    video_thread = QtCore.QThread()
-    video_thread.start()
-    video = Video(camera)
-    video.moveToThread(video_thread)
-
-    # PCD Thread
-    pcd_thread = QtCore.QThread()
-    pcd_thread.start()
-    pcd = PointCloudService(camera)
-    pcd.moveToThread(pcd_thread)
-    
-    # Segmentation service thread
-    segmentation_thread = QtCore.QThread()
-    segmentation_thread.start()
-    segmentation = SegmentationService(camera)
-    segmentation.moveToThread(segmentation_thread)
-    
-    # Tracking service thread
-    tracking_thread = QtCore.QThread()
-    tracking_thread.start()
-    tracking = TrackingService(camera)
-    tracking.moveToThread(tracking_thread)
-
     # Qt View
     rgb_viewer = ImageViewer()
     depth_viewer = ImageViewer()
     pcd_viewer = ImageViewer()
     seg_viewer = ImageViewer()
     tracking_viewer = ImageViewer()
-    table_viewer = TableViewer()
+
+    # Video thread
+    video = VideoService(camera)
+    video.rgb_signal.connect(rgb_viewer.setImage)
+    video.depth_signal.connect(depth_viewer.setImage)
+
+    video_thread = QtCore.QThread()
+    video_thread.start()
+    video.moveToThread(video_thread)
+
+    # PCD Thread
+    pcd = PointCloudService(camera)
+    pcd.pcd_signal.connect(pcd_viewer.setImage)
+
+    pcd_thread = QtCore.QThread()
+    pcd_thread.start()
+    pcd.moveToThread(pcd_thread)
+    
+    # Segmentation service thread
+    segmentation = SegmentationService(camera)
+    segmentation.seg_signal.connect(seg_viewer.setImage)
+
+    segmentation_thread = QtCore.QThread()
+    segmentation_thread.start()
+    segmentation.moveToThread(segmentation_thread)
+
+    # Tracking service thread
+    tracking = TrackingService(camera)
+    tracking.tracking_signal.connect(tracking_viewer.setImage)
+
+    tracking_thread = QtCore.QThread()
+    tracking_thread.start()
+    tracking.moveToThread(tracking_thread)
 
     pcd_viewer.mouseMoveEvent = pcd.camera.pcd.qt_mouse_event
 
-    grid_layout = QGridLayout()
-    grid_layout.addWidget(rgb_viewer, 0, 0)
-    grid_layout.addWidget(depth_viewer, 0, 1)
-    grid_layout.addWidget(seg_viewer, 1, 0)
-    grid_layout.addWidget(tracking_viewer, 1, 1)
-    grid_layout.addWidget(pcd_viewer, 0, 2)
+    # RGBD Dock Widget
+    dw_rgbd_viewer = RGBDWidget(rgb_viewer, depth_viewer)
+    main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dw_rgbd_viewer)
 
-    start_button = QPushButton('Start')
-    pcd_button = QPushButton('PointCloud')
-    seg_button = QPushButton('Segmentation')
-    tracking_button = QPushButton('Tracking')
-    clear_button = QPushButton('Clear')
+    # Segmentation Dock Widget
+    dw_seg_viewer = SegmentationWidget(seg_viewer)
+    dw_seg_viewer.setButtonEvent(segmentation.start)
+    main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dw_seg_viewer)
 
-    vertical_layout = QVBoxLayout()
-    vertical_layout.addLayout(grid_layout)
-    vertical_layout.addWidget(table_viewer.table)
-    vertical_layout.addWidget(start_button)
-    vertical_layout.addWidget(pcd_button)
-    vertical_layout.addWidget(seg_button)
-    vertical_layout.addWidget(tracking_button)
+    # Tracaking Dock Widget
+    dw_tracking_viewer = LocalizationWidget(tracking_viewer)
+    dw_tracking_viewer.setButtonEvent(tracking.start)
+    main_window.setCentralWidget(dw_tracking_viewer)
+
+
+    # PointCloud Dock Widget
+    dw_pcd_viewer = PointCloudWidget(pcd_viewer)
+    dw_pcd_viewer.setButtonEvent(pcd.start)
+    main_window.addDockWidget(QtCore.Qt.RightDockWidgetArea, dw_pcd_viewer)
     
-    layout_widget = QWidget()
-    layout_widget.setLayout(vertical_layout)
-
-    # Button Event
-    pcd_button.clicked.connect(pcd.start)
-    seg_button.clicked.connect(segmentation.start)
-    tracking_button.clicked.connect(tracking.start)
-
-    # Qt Event
-    video.rgb_signal.connect(rgb_viewer.setImage)
-    video.depth_signal.connect(depth_viewer.setImage)
-    pcd.pcd_signal.connect(pcd_viewer.setImage)
-    segmentation.seg_signal.connect(seg_viewer.setImage)
-    tracking.tracking_signal.connect(tracking_viewer.setImage)
-
-    main_window = QMainWindow()
-    main_window.setCentralWidget(layout_widget)
+    # main_window.tabifyDockWidget(dw_rgb_viewer, dw_depth_viewer)
+    
+    # main window theme
+    main_window = qtmodern.windows.ModernWindow(main_window)
     main_window.show()
 
     video.start()
-    pcd.start()
-    
+
     sys.exit(app.exec_())
+
