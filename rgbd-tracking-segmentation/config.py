@@ -33,6 +33,6 @@ class SegConfig:
 
 class TrackingConfig:
     on_gpu = True
-    # config_detection = "tracking/configs/yolov3_tiny.yaml"
-    config_detection = "tracking/configs/yolov3.yaml"
+    config_detection = "tracking/configs/yolov3_tiny.yaml"
+    # config_detection = "tracking/configs/yolov3.yaml"
     config_deepsort = "tracking/configs/deep_sort.yaml"

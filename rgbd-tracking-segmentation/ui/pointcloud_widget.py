@@ -11,6 +11,8 @@ class PointCloudWidget(QDockWidget):
 
         self.pcd_viewer = ImageViewer()
         self.pcd_button = QPushButton('PointCloud')
+        self.pcd_button.setCheckable(True)
+        self.pcd_button.setChecked(True)
 
         pcd_layout = QVBoxLayout()
         pcd_layout.addWidget(self.pcd_viewer)
@@ -30,3 +32,6 @@ class PointCloudWidget(QDockWidget):
 
     def getImageSignal(self):
         return self.pcd_viewer.setImage
+
+    def isOn(self):
+        return self.pcd_button.isChecked()

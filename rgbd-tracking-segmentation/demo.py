@@ -8,16 +8,18 @@ import qtmodern.windows
 
 from camera import RealSense
 from config import CameraConfig
+from utils import *
+
 from pointcloud_service import PointCloudService
 from segmentation_service import SegmentationService
-from tracking_service import TrackingService
+from localization_service import LocalizationService
+from video_service import VideoService
+
 from ui.image_viewer import ImageViewer
 from ui.rgbd_widget import RGBDWidget
 from ui.segmentation_widget import SegmentationWidget
 from ui.localization_widget import LocalizationWidget
 from ui.pointcloud_widget import PointCloudWidget
-from utils import *
-from video_service import VideoService
 
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -41,11 +43,9 @@ if __name__ == '__main__':
         print(e)
         sys.exit(app.exec_())
     
-    # Video thread & service & ui
-    video_thread = QtCore.QThread()
-    video_thread.start()
-
+    # Video service & ui
     video = VideoService(camera)
+    video.start()
 
     rgbd_widget = RGBDWidget()
     rgb_siganl, depth_signal = rgbd_widget.getImageSignal()
@@ -53,57 +53,53 @@ if __name__ == '__main__':
     video.rgb_signal.connect(rgb_siganl)
     video.depth_signal.connect(depth_signal)
 
-    video.moveToThread(video_thread)
-
-    # PointCloud thread & service & ui
-    pcd_thread = QtCore.QThread()
-    pcd_thread.start()
-
+    # PointCloud service & ui
     pcd = PointCloudService(camera)
+    pcd.start()
     
     pcd_widget = PointCloudWidget()
-    pcd_widget.setButtonEvent(pcd.start)
+    pcd_widget.setButtonEvent(lambda: pcd.on(pcd_widget.isOn()))
     pcd_widget.setMouseEvent(pcd.camera.pcd.qt_mouse_event)
     
     pcd.pcd_signal.connect(pcd_widget.getImageSignal())
-    pcd.moveToThread(pcd_thread)
 
-    # Segmentation thread & service & ui
-    segmentation_thread = QtCore.QThread()
-    segmentation_thread.start()
-
+    # Segmentation service & ui
     segmentation = SegmentationService(camera)
+    segmentation.start()
     
     seg_widget = SegmentationWidget()
-    seg_widget.setButtonEvent(segmentation.start)
+    # seg_widget.setButtonEvent(lambda: segmentation.on(seg_widget.isOn()))
+    seg_widget.setButtonEvent(lambda: segmentation.run())
 
-    segmentation.seg_signal.connect(seg_widget.getImageSignal())
-    segmentation.moveToThread(segmentation_thread)
+    seg_signal_1, seg_signal_2, seg_signal_3, seg_signal_4 = seg_widget.getImageSignal()
+    segmentation.seg_signal_1.connect(seg_signal_1)
+    segmentation.seg_signal_2.connect(seg_signal_2)
+    segmentation.seg_signal_3.connect(seg_signal_3)
+    segmentation.seg_signal_4.connect(seg_signal_4)
     
-    # Tracking service thread & service & ui
-    tracking_thread = QtCore.QThread()
-    tracking_thread.start()
-
-    tracking = TrackingService(camera)
+    # Tracking service service & ui
+    localization = LocalizationService(camera, segmentation)
+    localization.start()
     
-    tracking_widget = LocalizationWidget()
-    tracking_widget.setButtonEvent(tracking.start)
+    localization_widget = LocalizationWidget()
+    localization_widget.setButtonEvent(lambda: localization.on(localization_widget.isOn()))
 
-    tracking.tracking_signal.connect(tracking_widget.getImageSignal())
-    tracking.moveToThread(tracking_thread)
+    debug_signal_1, debug_signal_2 = localization_widget.getDebugSignal()
+
+    localization.tracking_signal.connect(localization_widget.getImageSignal())
+    localization.debug_signal_1.connect(debug_signal_1)
+    localization.debug_signal_2.connect(debug_signal_2)
 
     # Dock Widgets
     main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, rgbd_widget)
     main_window.addDockWidget(QtCore.Qt.RightDockWidgetArea, pcd_widget)   
     main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, seg_widget)
-    main_window.setCentralWidget(tracking_widget)
+    main_window.setCentralWidget(localization_widget)
     # main_window.tabifyDockWidget(dw_rgb_viewer, dw_depth_viewer)
     
     # main window theme
     main_window = qtmodern.windows.ModernWindow(main_window)
     main_window.show()
-
-    video.start()
-
+    
     sys.exit(app.exec_())
 

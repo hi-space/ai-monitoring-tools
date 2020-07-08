@@ -5,6 +5,8 @@ import numpy as np
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 
+from threading import Lock
+
 
 def get_current_time():
     return time.strftime("%m-%d %H:%M:%S", time.gmtime())
@@ -60,3 +62,15 @@ def update_overlay(baseImage):
 
     return qimage
 
+
+def cv2qimage(image, w=640, h=480):    
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = cv2.resize(image, dsize=(w, h), interpolation=cv2.INTER_LINEAR)
+    qt_image = QtGui.QImage(image.data,
+                            w,
+                            h,
+                            image.strides[0],
+                            QtGui.QImage.Format_RGB888)
+        
+    return qt_image
+    

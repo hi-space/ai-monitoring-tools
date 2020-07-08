@@ -4,31 +4,26 @@ from PyQt5 import QtGui
 
 
 class ImageViewer(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, w=320, h=240, parent=None):
         super(ImageViewer, self).__init__(parent)
-        self.label = QLabel(self)
+
+        self.setFixedSize(w, h)
+
+        self.label = QLabel(self)        
         self.label.setPixmap(QtGui.QPixmap('tmp.jpg'))
-        self.label.resize(640, 480)
-
-        # self.image = QtGui.QImage()
-        # self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
-
-    def paintEvent(self, event):
-        pass
-        # painter = QtGui.QPainter(self)
-        # painter.drawImage(0, 0, self.image)
-        # self.image = QtGui.QImage()
 
     @QtCore.pyqtSlot(QtGui.QImage)
     def setImage(self, image):
         if image.isNull():
             print("Viewer Dropped frame!")
         
-        # self.image = image
-        if image.size() != self.size():
-            self.setFixedSize(image.size())
-        
-        self.label.resize(image.size())
-        self.label.setPixmap(QtGui.QPixmap.fromImage(image))
+        # if image.size() != self.size():
+        #     self.setFixedSize(image.size())
 
-        # self.update()
+        self.setFixedSize(self.size())
+        
+        self.label.resize(self.width(), self.height())
+        pixmap = QtGui.QPixmap.fromImage(image)
+        pixmap = pixmap.scaled(self.size(), QtCore.Qt.KeepAspectRatio)
+
+        self.label.setPixmap(pixmap)        

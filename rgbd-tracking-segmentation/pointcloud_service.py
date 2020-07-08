@@ -3,30 +3,32 @@ import cv2
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 
+from service import IService
 
-class PointCloudService(QtCore.QObject):
+
+class PointCloudService(IService):
     pcd_signal = QtCore.pyqtSignal(QtGui.QImage)
 
-    def __init__(self, camera, parent=None):
-        super(PointCloudService, self).__init__(parent)
-        self.camera = camera
+    def __init__(self, camera):
+        super(PointCloudService, self).__init__(camera)
 
     @QtCore.pyqtSlot()
-    def start(self):
-        try:
-            while True:
-                out = self.camera.get_pointcloud()
-                
-                out = cv2.cvtColor(out, cv2.COLOR_BGR2RGB)
-                height, width, channel = out.shape
+    def run(self):
+        while True:
+            try:
+                if self.is_on:
+                    out = self.camera.get_pointcloud()
+                    
+                    out = cv2.cvtColor(out, cv2.COLOR_BGR2RGB)
+                    height, width, _ = out.shape
 
-                qt_pcd_image = QtGui.QImage(out.data,
-                                        width,
-                                        height,
-                                        out.strides[0],
-                                        QtGui.QImage.Format_RGB888)
+                    qt_pcd_image = QtGui.QImage(out.data,
+                                            width,
+                                            height,
+                                            out.strides[0],
+                                            QtGui.QImage.Format_RGB888)
 
-                self.pcd_signal.emit(qt_pcd_image)
-        except Exception as e:
-            print(e)
+                    self.pcd_signal.emit(qt_pcd_image)
+            except:
+                pass
 

@@ -1,7 +1,7 @@
 import cv2
 import pyrealsense2 as rs
 import numpy as np
-from pointcloud import PointCloud
+from visualization.pointcloud import PointCloud
 
 
 class ICamera():
@@ -52,7 +52,7 @@ class RealSense(ICamera):
 
         return self.color_image, self.depth_image, self.depth_colormap
 
-    def get_pointcloud(self):        
+    def get_pointcloud(self):
         out = self.pcd.update(self.color_frame, self.depth_frame, self.color_image, self.depth_colormap)
         return out
 
