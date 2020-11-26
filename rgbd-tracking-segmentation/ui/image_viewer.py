@@ -1,6 +1,6 @@
-from PyQt5 import QtCore
+from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-from PyQt5 import QtGui
+from PyQt5.QtCore import *
 
 
 class ImageViewer(QWidget):
@@ -10,9 +10,10 @@ class ImageViewer(QWidget):
         self.setFixedSize(w, h)
 
         self.label = QLabel(self)        
-        self.label.setPixmap(QtGui.QPixmap('tmp.jpg'))
+        self.label.setPixmap(QPixmap('tmp.jpg'))
+        self.label.setAlignment(Qt.AlignCenter)
 
-    @QtCore.pyqtSlot(QtGui.QImage)
+    @pyqtSlot(QImage)
     def setImage(self, image):
         if image.isNull():
             print("Viewer Dropped frame!")
@@ -23,7 +24,7 @@ class ImageViewer(QWidget):
         self.setFixedSize(self.size())
         
         self.label.resize(self.width(), self.height())
-        pixmap = QtGui.QPixmap.fromImage(image)
-        pixmap = pixmap.scaled(self.size(), QtCore.Qt.KeepAspectRatio)
+        pixmap = QPixmap.fromImage(image)
+        pixmap = pixmap.scaled(self.size(), Qt.KeepAspectRatio)
 
         self.label.setPixmap(pixmap)        

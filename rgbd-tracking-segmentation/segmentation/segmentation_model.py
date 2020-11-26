@@ -13,11 +13,21 @@ class SegmentationModel():
         self.model = self.get_network(model)
     
     def get_network(self, model_path):
-        if model_path == SegConfig.SUN_RGB_SCENENET_PRETRAIN or model_path == SegConfig.NYU_RGB_SCENENET_PRETRAIN:
+        # rgb
+        if model_path == SegConfig.NYU_RGB_NO_PRETRAIN or \
+            model_path == SegConfig.NYU_RGB_IMAGENET_PRETRAIN or \
+            model_path == SegConfig.NYU_RGB_SCENENET_PRETRAIN or \
+            model_path == SegConfig.SUN_RGB_NO_PRETRAIN or \
+            model_path == SegConfig.SUN_RGB_IMAGENET_PRETRAIN or \
+            model_path == SegConfig.SUN_RGB_SCENENET_PRETRAIN:
             unet = un.UNet(14)
-        elif model_path == SegConfig.SUN_RGBD_SCENENET_PRETRAIN or model_path == SegConfig.NYU_RGBD_SCENENET_PRETRAIN:
+        #rgbd
+        elif model_path == SegConfig.NYU_RGBD_NO_PRETRAIN or \
+            model_path == SegConfig.NYU_RGBD_SCENENET_PRETRAIN or \
+            model_path == SegConfig.SUN_RGBD_NO_PRETRAIN or \
+            model_path == SegConfig.SUN_RGBD_SCENENET_PRETRAIN:
             unet = un.UNetRGBD(14)
-        
+
         unet.load_state_dict(torch.load(model_path + '.pth'))
 
         if self.on_gpu:

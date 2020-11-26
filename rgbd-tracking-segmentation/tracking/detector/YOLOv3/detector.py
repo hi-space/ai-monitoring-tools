@@ -7,7 +7,6 @@ from .darknet import Darknet
 from .yolo_utils import get_all_boxes, nms, post_process, xywh_to_xyxy, xyxy_to_xywh
 from .nms import boxes_nms
 
-
 class YOLOv3(object):
     def __init__(self, cfgfile, weightfile, namesfile, score_thresh=0.7, conf_thresh=0.01, nms_thresh=0.45,
                  is_xywh=False, use_cuda=True):

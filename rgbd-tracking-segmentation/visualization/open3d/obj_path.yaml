@@ -1,0 +1,11 @@
+CatModels:
+  obj_class_id:
+    - 0
+    - 1
+    - 2
+    - 3
+  obj_path:
+    - "models/orange_cat/12221_Cat_v1_l3.obj"
+    - "models/grey_cat/WQE6TY36FR6PMSLSUXJU0DS78.obj"
+    - "models/siamese_cat/WJABP3NXFTSAFGMYSO142QRWJ.obj"
+    - "models/yellow_cat/V8JKOC825T8WJ0L34BMKNNFK8.obj"

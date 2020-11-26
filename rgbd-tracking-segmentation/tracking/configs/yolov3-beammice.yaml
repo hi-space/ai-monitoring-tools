@@ -1,0 +1,7 @@
+YOLOV3:
+  CFG: "./tracking/detector/YOLOv3/cfg/yolov3-beammice.cfg"
+  WEIGHT: "./tracking/detector/YOLOv3/weight/yolov3-beammice_final.weights"
+  CLASS_NAMES: "./tracking/detector/YOLOv3/data/beammice.names"
+
+  SCORE_THRESH: 0.5
+  NMS_THRESH: 0.4

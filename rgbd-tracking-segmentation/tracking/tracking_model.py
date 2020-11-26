@@ -1,4 +1,6 @@
 import os
+import copy
+import collections
 import cv2
 import time
 import argparse
@@ -12,6 +14,9 @@ from .utils.draw import draw_boxes
 from .utils.parser import get_config
 from .utils.io import write_results
 
+from debug.profiler import time_profiler
+
+DetectionOutput = collections.namedtuple("DetectionOutput", "bbox_xywh cls_conf cls_ids")
 
 class TrackingModel(object):
     def __init__(self, config_detection="./configs/yolov3.yaml", config_deepsort="./configs/deep_sort.yaml", on_gpu=True):
@@ -25,12 +30,18 @@ class TrackingModel(object):
         self.deepsort = build_tracker(self.cfg, use_cuda=use_cuda)
         class_name = self.detector.class_names
 
+    @time_profiler
     def inference(self, frame):
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         
+        detection_outputs = None
+
         # detection
         bbox_xywh, cls_conf, cls_ids = self.detector(img)
+        if len(bbox_xywh) > 0:
+            detection_outputs = DetectionOutput(bbox_xywh=bbox_xywh, cls_conf=cls_conf, cls_ids=cls_ids)
 
+        """
         # select person class
         # cat: 16
         mask = cls_ids == 0
@@ -56,3 +67,5 @@ class TrackingModel(object):
 
         else:
             return frame
+        """
+        return detection_outputs

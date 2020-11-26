@@ -11,7 +11,6 @@ class CameraConfig:
         
     camera_mode = CameraMode.REALSENSE
 
-
 class SegConfig:
     # segmentation
     NYU_RGB_NO_PRETRAIN = "segmentation/models/nyu_rgb_no_pretrain"
@@ -28,11 +27,19 @@ class SegConfig:
 
     on_gpu = True
     eval_mode = True
-    running_model = SUN_RGB_SCENENET_PRETRAIN
 
 
 class TrackingConfig:
     on_gpu = True
-    config_detection = "tracking/configs/yolov3_tiny.yaml"
+    # config_detection = "tracking/configs/yolov3_tiny.yaml"
     # config_detection = "tracking/configs/yolov3.yaml"
+    config_detection = "tracking/configs/yolov3-beammice.yaml"
     config_deepsort = "tracking/configs/deep_sort.yaml"
+
+class RedisConfig:
+
+    @property
+    def conf(self):
+        class Config:
+            topic_for_visualizer = "3d-vis"
+        return Config
