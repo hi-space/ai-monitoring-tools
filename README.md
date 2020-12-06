@@ -8,3 +8,4 @@ PyQt tool showing real-time tracking and segmentation using RGB-D data obtained 
 
 ## Result
 
+![result](docs/result.png)
